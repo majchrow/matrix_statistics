@@ -1,5 +1,4 @@
 import numpy as np
-from pprint import pprint
 
 
 def _get_shapes(m_a, m_b):  # SHAPE A:(NxM) B:(MxL) C: NxL
@@ -25,7 +24,7 @@ def mm_ijk(m_a, m_b):
     return m_c
 
 
-def mm_ikj(m_a, m_b):  # SHAPE A:(NxM) B:(MxL) C: NxL
+def mm_ikj(m_a, m_b):
     N, M, L = _get_shapes(m_a, m_b)
 
     m_c = _init_zeros(N, L)
@@ -38,7 +37,7 @@ def mm_ikj(m_a, m_b):  # SHAPE A:(NxM) B:(MxL) C: NxL
     return m_c
 
 
-def mm_jik(m_a, m_b):  # SHAPE A:(NxM) B:(MxL) C: NxL
+def mm_jik(m_a, m_b):
     N, M, L = _get_shapes(m_a, m_b)
 
     m_c = _init_zeros(N, L)
@@ -51,7 +50,7 @@ def mm_jik(m_a, m_b):  # SHAPE A:(NxM) B:(MxL) C: NxL
     return m_c
 
 
-def mm_jki(m_a, m_b):  # SHAPE A:(NxM) B:(MxL) C: NxL
+def mm_jki(m_a, m_b):
     N, M, L = _get_shapes(m_a, m_b)
 
     m_c = _init_zeros(N, L)
@@ -64,7 +63,7 @@ def mm_jki(m_a, m_b):  # SHAPE A:(NxM) B:(MxL) C: NxL
     return m_c
 
 
-def mm_kij(m_a, m_b):  # SHAPE A:(NxM) B:(MxL) C: NxL
+def mm_kij(m_a, m_b):
     N, M, L = _get_shapes(m_a, m_b)
 
     m_c = _init_zeros(N, L)
@@ -77,7 +76,7 @@ def mm_kij(m_a, m_b):  # SHAPE A:(NxM) B:(MxL) C: NxL
     return m_c
 
 
-def mm_kji(m_a, m_b):  # SHAPE A:(NxM) B:(MxL) C: NxL
+def mm_kji(m_a, m_b):
     N, M, L = _get_shapes(m_a, m_b)
 
     m_c = _init_zeros(N, L)
@@ -117,7 +116,7 @@ def main():
     print("JIK:", np.matrix(m_c), sep='\n')
 
     # jki
-    m_c = mm_jik(m_a, m_b)
+    m_c = mm_jki(m_a, m_b)
     print("JKI:", np.matrix(m_c), sep='\n')
 
     # kij
@@ -127,6 +126,7 @@ def main():
     # kji
     m_c = mm_kji(m_a, m_b)
     print("KJI:", np.matrix(m_c), sep='\n')
+
 
 if __name__ == '__main__':
     main()
