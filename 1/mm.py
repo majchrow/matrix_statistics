@@ -1,5 +1,5 @@
 import numpy as np
-
+import time
 
 def _get_shapes(m_a, m_b):  # SHAPE A:(NxM) B:(MxL) C: NxL
     N = len(m_a)
@@ -89,6 +89,34 @@ def mm_kji(m_a, m_b):
     return m_c
 
 
+def multiply_matrices_and_measure_time(mm, m_a, m_b):
+    current_time = lambda: time.time() * 1000
+    start_time = current_time()
+    m_c = mm(m_a, m_b)
+    end_time = current_time()
+    return m_c, round(end_time - start_time,3)
+
+def generate_matrix(size):
+    return np.random.rand(size,size)
+
+def run_tests(size):
+    print(f"RUNNING TESTS FOR MATRIX SIZE: {size}")
+    m_a = generate_matrix(size)
+    m_b = generate_matrix(size)
+
+    mm_operations = [("IJK", mm_ijk), ("IKJ", mm_ikj), ("JIK", mm_jik), ("JKI", mm_jki), ("KIJ", mm_kij), ("KJI", mm_kji)]
+    resutlt_matrices = []
+
+    for loops_sequence, mm in mm_operations:
+        m_c, op_time = multiply_matrices_and_measure_time(mm, m_a, m_b)
+        print(f"{loops_sequence} - TIME: {op_time}")
+        resutlt_matrices.append(m_c)
+
+    base_result = resutlt_matrices[0]
+
+    for result_matrix in resutlt_matrices[1:]:
+        assert np.allclose(base_result, result_matrix)
+
 def main():
     m_a = [
         [1, 1, 1],
@@ -129,4 +157,6 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    sizes = [10,100,1000]
+    for size in sizes:
+        run_tests(size)
