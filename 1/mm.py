@@ -1,5 +1,7 @@
-import numpy as np
 import time
+
+import numpy as np
+
 
 def _get_shapes(m_a, m_b):  # SHAPE A:(NxM) B:(MxL) C: NxL
     N = len(m_a)
@@ -9,82 +11,82 @@ def _get_shapes(m_a, m_b):  # SHAPE A:(NxM) B:(MxL) C: NxL
 
 
 def _init_zeros(N, L):
-    return [[0. for _ in range(L)] for _ in range(N)]
+    return np.zeros((N, L))
 
 
-def mm_ijk(m_a, m_b):
-    N, M, L = _get_shapes(m_a, m_b)
+def _get_shapes_and_matrix(m_a, m_b):
+    N = len(m_a)
+    M = len(m_b)
+    L = len(m_b[0])
+    return N, M, L, _init_zeros(N, L)
 
-    m_c = _init_zeros(N, L)
+
+def mm(m_a, m_b):  # non vectorized
+    N, M, L, m_c = _get_shapes_and_matrix(m_a, m_b)
 
     for i in range(N):  # rows
         for j in range(L):  # columns
             for k in range(M):  # dot product
-                m_c[i][j] += m_a[i][k] * m_b[k][j]
+                m_c[i, j] += m_a[i, k] * m_b[k, j]
+
+    return m_c
+
+
+def mm_ijk(m_a, m_b):
+    N, M, L, m_c = _get_shapes_and_matrix(m_a, m_b)
+
+    for i in range(N):  # rows
+        for j in range(L):  # columns
+            m_c[i, j] = np.einsum("k,k->", m_a[i, :], m_b[:, j])
     return m_c
 
 
 def mm_ikj(m_a, m_b):
-    N, M, L = _get_shapes(m_a, m_b)
-
-    m_c = _init_zeros(N, L)
+    N, M, L, m_c = _get_shapes_and_matrix(m_a, m_b)
 
     for i in range(N):  # rows
         for k in range(M):  # dot product
-            for j in range(L):  # columns
-                m_c[i][j] += m_a[i][k] * m_b[k][j]
+            m_c[i, :] += m_a[i, k] * m_b[k, :]
 
     return m_c
 
 
 def mm_jik(m_a, m_b):
-    N, M, L = _get_shapes(m_a, m_b)
-
-    m_c = _init_zeros(N, L)
+    N, M, L, m_c = _get_shapes_and_matrix(m_a, m_b)
 
     for j in range(L):  # columns
         for i in range(N):  # rows
-            for k in range(M):  # dot product
-                m_c[i][j] += m_a[i][k] * m_b[k][j]
+            m_c[i, j] = np.einsum("k,k->", m_a[i, :], m_b[:, j])
 
     return m_c
 
 
 def mm_jki(m_a, m_b):
-    N, M, L = _get_shapes(m_a, m_b)
-
-    m_c = _init_zeros(N, L)
+    N, M, L, m_c = _get_shapes_and_matrix(m_a, m_b)
 
     for j in range(L):  # columns
         for k in range(M):  # dot product
-            for i in range(N):  # rows
-                m_c[i][j] += m_a[i][k] * m_b[k][j]
+            m_c[:, j] += m_a[:, k] * m_b[k, j]
 
     return m_c
 
 
 def mm_kij(m_a, m_b):
-    N, M, L = _get_shapes(m_a, m_b)
-
-    m_c = _init_zeros(N, L)
+    N, M, L, m_c = _get_shapes_and_matrix(m_a, m_b)
 
     for k in range(M):  # dot product
         for i in range(N):  # rows
-            for j in range(L):  # columns
-                m_c[i][j] += m_a[i][k] * m_b[k][j]
+            m_c[i, :] += m_a[i, k] * m_b[k, :]
 
     return m_c
 
 
 def mm_kji(m_a, m_b):
-    N, M, L = _get_shapes(m_a, m_b)
-
-    m_c = _init_zeros(N, L)
+    N, M, L, m_c = _get_shapes_and_matrix(m_a, m_b)
 
     for k in range(M):  # dot product
         for j in range(L):  # columns
-            for i in range(N):  # rows
-                m_c[i][j] += m_a[i][k] * m_b[k][j]
+            m_c[:, j] += m_a[:, k] * m_b[k, j]
 
     return m_c
 
@@ -94,17 +96,20 @@ def multiply_matrices_and_measure_time(mm, m_a, m_b):
     start_time = current_time()
     m_c = mm(m_a, m_b)
     end_time = current_time()
-    return m_c, round(end_time - start_time,3)
+    return m_c, round(end_time - start_time, 3)
+
 
 def generate_matrix(size):
-    return np.random.rand(size,size)
+    return np.random.rand(size, size)
+
 
 def run_tests(size):
     print(f"RUNNING TESTS FOR MATRIX SIZE: {size}")
     m_a = generate_matrix(size)
     m_b = generate_matrix(size)
 
-    mm_operations = [("IJK", mm_ijk), ("IKJ", mm_ikj), ("JIK", mm_jik), ("JKI", mm_jki), ("KIJ", mm_kij), ("KJI", mm_kji)]
+    mm_operations = [("IJK", mm_ijk), ("IKJ", mm_ikj), ("JIK", mm_jik), ("JKI", mm_jki), ("KIJ", mm_kij),
+                     ("KJI", mm_kji)]
     resutlt_matrices = []
 
     for loops_sequence, mm in mm_operations:
@@ -116,6 +121,7 @@ def run_tests(size):
 
     for result_matrix in resutlt_matrices[1:]:
         assert np.allclose(base_result, result_matrix)
+
 
 def main():
     m_a = [
@@ -157,6 +163,6 @@ def main():
 
 
 if __name__ == '__main__':
-    sizes = [10,100,1000]
+    sizes = [10, 100, 1000]
     for size in sizes:
         run_tests(size)
