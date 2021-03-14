@@ -11,7 +11,6 @@ def get_solution(A,b,size):
 
 def ge_without_pivoting_and_with_ones_on_diagonal(A,b,size):
     for i in np.arange(size):
-        tmp = A[i,i]
         # ones on diagonal
         tmp = A[i,i]
         A[i,i:] = A[i,i:]/tmp
