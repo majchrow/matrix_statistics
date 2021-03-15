@@ -108,9 +108,13 @@ def LU_factorization(A):  # vectorized by default
 
 
 if __name__ == "__main__":
+
+    # A = np.array([[1000, 999], [999, 998]]).astype('float64')  # home assignment
+    # b = np.array([1999, 1997]).astype('float64') # home assignment
+
     A = np.array([[1, 2, 4], [3, 5, 12], [20, 10, 1]]).astype('float64')
     b = np.array([1, 2, 7]).astype('float64')
-    size = 3
+    size = A.shape[0]
     print("Gaussian elimination without pivoting (with ones on diagonal): ")
     solution1 = ge_without_pivoting_and_with_ones_on_diagonal_vectorized(A.copy(), b.copy(), size)
     print(f"x={solution1}")
@@ -125,8 +129,11 @@ if __name__ == "__main__":
 
     print("LU factorization without pivoting: ")
     L, U = LU_factorization(A)
-
     assert np.allclose(L @ U, A)
+    c = np.linalg.solve(L, b)
+    x = np.linalg.solve(U, c)
+    print(f"c={c}")
+    print(f"x={x}")
 
     print("Solution from numpy library: ")
     print(f"x={np.linalg.solve(A, b)}")
