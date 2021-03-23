@@ -24,7 +24,7 @@ def get_coef(A):
         for y in range(A.shape[1]):
             tmp_matrix = np.delete(A, x, axis=0)
             tmp_matrix = np.delete(tmp_matrix, y, axis=1)
-            coef[x, y] = get_determinant(tmp_matrix)
+            coef[x, y] = (-1) ** (x + y) * get_determinant(tmp_matrix)
     return coef
 
 def get_inverse_matrix(A):
