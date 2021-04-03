@@ -9,15 +9,24 @@ def SVD(A, verbose=False):
     if verbose:
         print("Power method for A^TA")
     _, eigenvectors_AtA = power_method(A.T @ A, verbose=verbose)
+    singular_values = np.sqrt(eigenvalues)
 
     # U matrix
     U = np.column_stack(eigenvectors_AAt)
 
     # Sigma matrix
-    E = np.diag(np.sqrt(eigenvalues))
+    E = np.diag(singular_values)
 
     # V matrix
     V = np.column_stack(eigenvectors_AtA)
+
+    # Fix sign for matrix V for corresponding non zeros singular values based on equation sign(A^T ui) = sign(vi)
+    for i in range(A.shape[0]):
+        if np.isclose(singular_values[i], 0):
+            break
+        sign_Au = np.sign(A.T @ U[:, i])
+        sign_V = np.sign(V[:, i])
+        V[:, i] = sign_Au * sign_V * V[:, i]
 
     return U, E, V
 
@@ -64,22 +73,22 @@ def power_iteration(A, max_error=1e-12, max_iter=500, start=None, verbose=False)
 
 
 def main(verbose=False, test_power=False, test_svd=False, print_numpy=False):
-    A = np.array(
-        [[2, 22, 11],
-         [-10, 21, 10],
-         [-11, -1, -2]]
-    ).astype(float)
+    # A = np.array(
+    #     [[2, 22, 11],
+    #      [-10, 21, 10],
+    #      [-11, -1, -2]]
+    # ).astype(float)
 
     # A = np.array(
     #     [[3, 1],
     #      [6, 2]]
     # ).astype(float)
 
-    # A = np.array(
-    #     [[2, -1, 0],
-    #      [-1, 2, -1],
-    #      [0, -1, 2]]
-    # ).astype(float)
+    A = np.array(
+        [[2, -1, 0],
+         [-1, 2, -1],
+         [0, -1, 2]]
+    ).astype(float)
 
     if test_power:
         # Power method test
@@ -101,8 +110,8 @@ def main(verbose=False, test_power=False, test_svd=False, print_numpy=False):
     print("V:\n", np.around(V, 2))
     print("A:\n", np.around(A, 2))
     print("UEV^t:\n", np.around(UEVT, 2))  # Expected A
-    print("VV^t:\n", np.around(V @ V.T, 2))  # Expected identity (with nonzero eigenvalues)
-    print("UU^t:\n", np.around(U @ U.T, 2))  # Expected identity (with nonzero eigenvalues)
+    print("VV^t:\n", np.around(V @ V.T, 2))  # Expected identity (When AA^t has nonzero eigenvalues)
+    print("UU^t:\n", np.around(U @ U.T, 2))  # Expected identity (When AA^t has nonzero eigenvalues)
 
     print("Done")
 
@@ -127,4 +136,4 @@ def main(verbose=False, test_power=False, test_svd=False, print_numpy=False):
 
 
 if __name__ == '__main__':
-    main(verbose=True, test_power=True, test_svd=True, print_numpy=True)
+    main(verbose=True, test_power=True, test_svd=False, print_numpy=False)
