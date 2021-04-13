@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def SVD(A, verbose=False):
+def SVD(A, verbose=False, V_from_power=True):
     # Calculate eigenvalues and eigenvectors for AA^T and A^TA
     if verbose:
         print("Power method for AA^T")
@@ -9,6 +9,7 @@ def SVD(A, verbose=False):
     if verbose:
         print("Power method for A^TA")
     _, eigenvectors_AtA = power_method(A.T @ A, verbose=verbose)
+
     singular_values = np.sqrt(eigenvalues)
 
     # U matrix
@@ -17,16 +18,41 @@ def SVD(A, verbose=False):
     # Sigma matrix
     E = np.diag(singular_values)
 
-    # V matrix
+    # V matrix (from power method by default)
     V = np.column_stack(eigenvectors_AtA)
 
-    # Fix sign for matrix V for corresponding non zeros singular values based on equation sign(A^T ui) = sign(vi)
+    # Fix matrices if there is singular value=0
     for i in range(A.shape[0]):
         if np.isclose(singular_values[i], 0):
-            break
-        sign_Au = np.sign(A.T @ U[:, i])
-        sign_V = np.sign(V[:, i])
-        V[:, i] = sign_Au * sign_V * V[:, i]
+            # Fix U Matrix
+            eigenvector = np.ones(U[:, i].shape)  # initialize vector with ones
+            first_row = (A @ A.T)[0, :]
+            eigenvector[-1] = - first_row[:-1].sum() / first_row[-1]  # get last unknown values (assuming rest are ones)
+            eigenvector = eigenvector / np.linalg.norm(eigenvector)  # normalize the vector
+            U[:, i] = eigenvector
+
+            # Fix V Matrix
+            eigenvector = np.ones(V[:, i].shape)  # initialize vector with ones
+            first_row = (A.T @ A)[0, :]
+            eigenvector[-1] = - first_row[:-1].sum() / first_row[-1]  # get last unknown values (assuming rest are ones)
+            eigenvector = eigenvector / np.linalg.norm(eigenvector)  # normalize the vector
+            V[:, i] = eigenvector
+
+    # Fix sign for V matrix obtained from power method
+    if V_from_power:
+        # Fix sign for matrix V for corresponding non zeros singular values based on equation sign(A^T ui) = sign(vi)
+        for i in range(A.shape[0]):
+            if np.isclose(singular_values[i], 0):
+                break
+            sign_Au = np.sign(A.T @ U[:, i])
+            sign_V = np.sign(V[:, i])
+            V[:, i] = sign_Au * sign_V * V[:, i]
+    else:  # Do not use power method to calculate V matrix
+        # vi = A^T ui
+        for i in range(A.shape[0]):
+            if np.isclose(singular_values[i], 0):
+                break
+            V[:, i] = A.T @ U[:, i] / singular_values[i]
 
     return U, E, V
 
@@ -72,7 +98,7 @@ def power_iteration(A, max_error=1e-12, max_iter=500, start=None, verbose=False)
     return eigenvalue, eigenvector
 
 
-def main(verbose=False, test_power=False, test_svd=False, print_numpy=False):
+def main(verbose=False, test_power=False, test_svd=False, print_numpy=False, V_from_power=True):
     # A = np.array(
     #     [[2, 22, 11],
     #      [-10, 21, 10],
@@ -85,9 +111,9 @@ def main(verbose=False, test_power=False, test_svd=False, print_numpy=False):
     # ).astype(float)
 
     A = np.array(
-        [[2, -1, 0],
-         [-1, 2, -1],
-         [0, -1, 2]]
+    [[2, -1, 0],
+     [-1, 2, -1],
+     [0, -1, 2]]
     ).astype(float)
 
     if test_power:
@@ -103,7 +129,7 @@ def main(verbose=False, test_power=False, test_svd=False, print_numpy=False):
     print("==================================")
     print("Testing SVD")
 
-    U, E, V = SVD(A, verbose=verbose)
+    U, E, V = SVD(A, verbose=verbose, V_from_power=V_from_power)
     UEVT = U @ E @ V.T
     print("U:\n", np.around(U, 2))
     print("SIGMA:\n", np.around(E, 2))  # Expected diagonal
@@ -136,4 +162,4 @@ def main(verbose=False, test_power=False, test_svd=False, print_numpy=False):
 
 
 if __name__ == '__main__':
-    main(verbose=True, test_power=True, test_svd=False, print_numpy=False)
+    main(verbose=True, test_power=True, test_svd=False, print_numpy=False, V_from_power=True)
