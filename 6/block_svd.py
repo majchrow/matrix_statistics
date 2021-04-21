@@ -85,14 +85,16 @@ def _mb_svd(U1, E1, VT1, U2, E2, VT2):
 
 def _svd(A, epsilon):
     NU, tmp_e, NV_T = np.linalg.svd(A)
+    index = len(tmp_e)
 
     for i, sv in enumerate(tmp_e):
         if np.abs(sv) < epsilon:
+            index = i
             break
 
-    NU = NU[:, :i]
-    NV_T = NV_T[:i, :]
-    NE = np.diag(tmp_e[:i])
+    NU = NU[:, :index]
+    NV_T = NV_T[:index, :]
+    NE = np.diag(tmp_e[:index])
 
     return NU, NE, NV_T
 
@@ -102,7 +104,7 @@ if __name__ == "__main__":
     B = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 16]])
     size = 4
     m = 2
-    epsilon = 10 ** (-20)
+    epsilon = 10**(-10)
     C1 = mm_block(A, B, size, m)
     C2 = mm_block_svd(A, B, size, m, epsilon)
     C3 = A @ B
